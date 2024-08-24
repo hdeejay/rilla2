@@ -4,9 +4,9 @@ const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
 const { createClient } = require("@deepgram/sdk");
-
+require('dotenv').config();
 const app = express();
-const port = 8000;
+const port = 3001;
 
 // Ensure the directory exists
 const uploadDirectory = path.join(__dirname, '.', 'temp_videos');
@@ -46,7 +46,7 @@ app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
 
-const DEEPGRAM_API_KEY = `${process.env.DEEPGRAM_API_KEY}`;
+const DEEPGRAM_API_KEY = 'afd9f73947345deb9f583e238f7cd56011d82272';
 const transcribeFile = async () => {
   
   const deepgram = createClient(DEEPGRAM_API_KEY);

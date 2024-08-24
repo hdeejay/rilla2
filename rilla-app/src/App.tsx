@@ -7,7 +7,7 @@ const uploadVideo = async (blob: Blob) => {
   const formData = new FormData();
   formData.append('video', blob, 'temp_video.webm');
   try {
-    const response = await axios.post('http://localhost:8000/upload', formData);
+    const response = await axios.post('http://localhost:3001/upload', formData);
     console.log('Video uploaded successfully:', response.data.filePath);
   } catch (error) {
     console.error('Error uploading the video:', error);
@@ -58,21 +58,21 @@ const App: React.FC = () => {
   };
 
 
-  const uploadVideo = (blob: Blob) => {
-    const formData = new FormData();
-    formData.append('video', blob, 'temp_video.webm');
-    fetch('http://localhost:8000/upload', {
-      method: 'POST',
-      body: formData,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log('Video uploaded successfully:', data.filePath);
-      })
-      .catch((error) => {
-        console.error('Error uploading the video:', error);
-      });
-  };
+  // const uploadVideo = (blob: Blob) => {
+  //   const formData = new FormData();
+  //   formData.append('video', blob, 'temp_video.webm');
+  //   fetch('http://localhost:8000/upload', {
+  //     method: 'POST',
+  //     body: formData,
+  //   })
+  //     .then((response) => response.json())
+  //     .then((data) => {
+  //       console.log('Video uploaded successfully:', data.filePath);
+  //     })
+  //     .catch((error) => {
+  //       console.error('Error uploading the video:', error);
+  //     });
+  // };
 
   return (
     <div className="App">
