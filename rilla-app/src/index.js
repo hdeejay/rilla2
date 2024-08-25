@@ -4,7 +4,8 @@ const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = re
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
-const s3Client = new S3Client({ region: "us-west-1" }); // Replace with your AWS region
+const s3Client = new S3Client({ region: "us-west-1" }); 
+
 
 exports.handler = async (event) => {
   const { httpMethod, path } = event;
@@ -40,7 +41,6 @@ exports.handler = async (event) => {
 
 
 
- 
 async function createComment(body) {
   const { transcriptId, userId, content, timestamp, fileAttachment } = body;
   
@@ -52,32 +52,45 @@ async function createComment(body) {
     await uploadFileToS3(fileKey, fileAttachment.content);
   }
 
-  const commentParams = {
-    TableName: 'comments',
-    Item: {
-      commentId,
-      transcriptId,
-      userId,
-      content,
-      timestamp,
-      fileAttachment: fileKey
-    }
+  const newComment = {
+    commentId,
+    userId,
+    content,
+    timestamp,
+    fileAttachment: fileKey
   };
 
   try {
-    // Step 1: Create the comment
-    console.log('Creating comment with params:', JSON.stringify(commentParams));
-    await docClient.send(new PutCommand(commentParams));
-    console.log('Comment created successfully');
+    // Step 1: Get the current transcript
+    const getParams = {
+      TableName: 'Transcripts',
+      Key: { transcriptId }
+    };
+    const currentTranscript = await docClient.send(new GetCommand(getParams));
+    let currentComments = currentTranscript.Item?.comments || '[]';
 
-    // Step 2: Update the transcript
+    // Parse the comments string to an array
+    let commentsArray;
+    try {
+      commentsArray = JSON.parse(currentComments);
+    } catch (error) {
+      console.error('Error parsing comments:', error);
+      commentsArray = [];
+    }
+
+    // Add the new comment
+    commentsArray.push(newComment);
+
+    // Convert the array back to a string
+    const updatedCommentsString = JSON.stringify(commentsArray);
+
+    // Step 2: Update the transcript with the new comments string
     const transcriptParams = {
       TableName: 'Transcripts',
       Key: { transcriptId },
-      UpdateExpression: 'SET comments = list_append(if_not_exists(comments, :empty_list), :newComment)',
+      UpdateExpression: 'SET comments = :newComments',
       ExpressionAttributeValues: {
-        ':newComment': [commentId],
-        ':empty_list': []
+        ':newComments': updatedCommentsString
       },
       ReturnValues: 'UPDATED_NEW'
     };
@@ -86,17 +99,9 @@ async function createComment(body) {
     const updateResult = await docClient.send(new UpdateCommand(transcriptParams));
     console.log('Transcript updated successfully. Result:', JSON.stringify(updateResult));
 
-    // Step 3: Verify the update
-    const verifyParams = {
-      TableName: 'Transcripts',
-      Key: { transcriptId }
-    };
-    const verifyResult = await docClient.send(new GetCommand(verifyParams));
-    console.log('Verified transcript contents:', JSON.stringify(verifyResult.Item));
-
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Comment created and linked successfully', commentId, transcriptContents: verifyResult.Item })
+      body: JSON.stringify({ message: 'Comment created and linked successfully', comment: newComment })
     };
   } catch (error) {
     console.error('Error in createComment:', error);
@@ -106,6 +111,39 @@ async function createComment(body) {
     };
   }
 }
+
+const openaiResponse = await sendTranscriptToOpenAI({
+  transcript: verifyResult.Item.transcript,
+  transcriptId,
+  userId,
+  comments: verifyResult.Item.comments,
+  openaiAnalysis: openaiResponse.data.message 
+});
+console.log('OpenAI response:', openaiResponse);
+
+async function sendTranscriptToOpenAI(data) {
+  try {
+    const response = await axios.post('api endpoint, whatever link the nextjs server is running on', data);  // Replace with your actual API endpoint
+    return response;
+  } catch (error) {
+    console.error('Error sending transcript to OpenAI:', error);
+    throw error;
+  }
+}
+
+
+async function sendTranscriptToOpenAI(data) {
+try {
+const response = await axios.post('api endpoint, whatever link the nextjs server is running on', data);  // Replace with your actual API endpoint
+return response;
+} catch (error) {
+console.error('Error sending transcript to OpenAI:', error);
+throw error;
+}
+}
+
+
+
 
 async function updateComment(body) {
   const { commentId, content, fileAttachment } = body;
@@ -182,10 +220,18 @@ async function verifyTranscriptContents(transcriptId) {
     
     if (result.Item && result.Item.comments) {
       console.log('Comments type:', typeof result.Item.comments);
-      console.log('Comments length:', result.Item.comments.length);
-      console.log('First comment:', result.Item.comments[0]);
+      let commentsArray;
+      try {
+        commentsArray = JSON.parse(result.Item.comments);
+        console.log('Parsed comments is array:', Array.isArray(commentsArray));
+        console.log('Parsed comments length:', commentsArray.length);
+        console.log('First 5 comments:', commentsArray.slice(0, 5));
+      } catch (error) {
+        console.error('Error parsing comments:', error);
+        console.log('Raw comments value:', result.Item.comments);
+      }
     } else {
-      console.log('No comments found or comments is not an array');
+      console.log('No comments found or comments is not a string');
     }
 
     return {
@@ -200,7 +246,6 @@ async function verifyTranscriptContents(transcriptId) {
     };
   }
 }
-
 
 async function updateTranscriptWithComment(transcriptId, commentId) {
   const params = {
@@ -250,20 +295,25 @@ async function getCommentsForTranscript(transcriptId) {
 
 // Add this function to your Lambda to get all comments for a transcript
 async function getAllCommentsForTranscript(transcriptId) {
-  const params = {
-    TableName: 'comments',
-    IndexName: 'transcriptId-index',
-    KeyConditionExpression: 'transcriptId = :tid',
-    ExpressionAttributeValues: {
-      ':tid': transcriptId
-    }
-  };
-
   try {
-    const result = await docClient.send(new QueryCommand(params));
+    const params = {
+      TableName: 'Transcripts',
+      Key: { transcriptId }
+    };
+    const result = await docClient.send(new GetCommand(params));
+    
+    let comments = [];
+    if (result.Item && result.Item.comments) {
+      try {
+        comments = JSON.parse(result.Item.comments);
+      } catch (error) {
+        console.error('Error parsing comments:', error);
+      }
+    }
+
     return {
       statusCode: 200,
-      body: JSON.stringify(result.Items)
+      body: JSON.stringify(comments)
     };
   } catch (error) {
     console.error('Error getting comments for transcript:', error);
@@ -273,9 +323,10 @@ async function getAllCommentsForTranscript(transcriptId) {
     };
   }
 }
+
 async function uploadFileToS3(key, content) {
   const params = {
-    Bucket: "filesrilla", // Replace with your S3 bucket name
+    Bucket: "filesrilla",
     Key: key,
     Body: Buffer.from(content, 'base64'),
     ContentType: "application/octet-stream"
@@ -286,7 +337,7 @@ async function uploadFileToS3(key, content) {
 
 async function getFileFromS3(key) {
   const params = {
-    Bucket: "filesrilla", // Replace with your S3 bucket name
+    Bucket: "filesrilla", 
     Key: key
   };
 
@@ -299,7 +350,7 @@ async function getFileFromS3(key) {
 
 async function deleteFileFromS3(key) {
   const params = {
-    Bucket: "filesrilla", // Replace with your S3 bucket name
+    Bucket: "filesrilla", 
     Key: key
   };
 
