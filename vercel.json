@@ -4,12 +4,21 @@
       {
         "src": "backend/server.js",
         "use": "@vercel/node"
+      },
+      {
+        "src": "rilla-app/package.json",
+        "use": "@vercel/static-build",
+        "config": { "distDir": "build" }
       }
     ],
     "routes": [
       {
+        "src": "/api/(.*)",
+        "dest": "backend/server.js"
+      },
+      {
         "src": "/(.*)",
-        "dest": "/backend/server.js"
+        "dest": "rilla-app/build/$1"
       }
     ]
   }
