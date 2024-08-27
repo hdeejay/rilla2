@@ -15,7 +15,7 @@ const { PDFDocument } = require('pdf-lib');
 const { createComment, updateComment, getAllCommentsForTranscript, deleteComment, handleSummarize } = require('./index');
 const OpenAI = require('openai');
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const port = 8000;
+const port = process.env.PORT || 8000;
 
 // Hard-coded configuration
 const AWS_REGION = 'us-west-1';
@@ -166,6 +166,13 @@ app.listen(port, async () => {
   } catch (error) {
     console.error('Error during initial file processing:', error);
   }
+}).on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`Port ${port} is already in use. Try a different port.`);
+  } else {
+    console.error('An error occurred while starting the server:', error);
+  }
+  process.exit(1);
 });
 
 app.get('/api/transcripts', async (req, res) => {
