@@ -1,0 +1,11 @@
+{
+  "files": {
+    "main.js": "/static/js/main.bd07a89b.js",
+    "static/media/axios.cjs": "/static/media/axios.3aff7940dad6ac2da106.cjs",
+    "index.html": "/index.html",
+    "main.bd07a89b.js.map": "/static/js/main.bd07a89b.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.bd07a89b.js"
+  ]
+}
