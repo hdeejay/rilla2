@@ -1,0 +1,192 @@
+.dashboard {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.dashboard h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+button {
+  display: block;
+  margin: 0 auto 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.error {
+  color: red;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.transcript-list {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 10px 0;
+}
+
+.transcript-item {
+  cursor: pointer;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  min-width: 150px;
+  text-align: center;
+}
+
+.transcript-item:hover {
+  background-color: #f0f0f0;
+}
+
+.transcript-item h3 {
+  margin: 0;
+  color: #007bff;
+}
+
+.transcript-item p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  max-width: 90%;
+  max-height: 90%;
+  overflow-y: auto;
+  display: flex;
+}
+
+.modal-content h2 {
+  margin-top: 0;
+}
+
+.modal-content button {
+  margin-top: 20px;
+}
+
+.file-upload {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.file-upload input[type="file"] {
+  margin-right: 10px;
+}
+
+.transcript-text {
+  flex: 1;
+  padding-right: 20px;
+  overflow-y: auto;
+}
+
+.comment-controls {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.comment-box {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: black;
+}
+
+.comment-box p {
+  margin: 5px 0;
+  color: black;
+}
+
+.comment-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.comment-button {
+  padding: 5px 10px;
+  font-size: 12px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.delete-button {
+  background-color: #ff4d4d;
+  color: white;
+}
+
+.edit-button {
+  background-color: #4d94ff;
+  color: white;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 5px 10px;
+  font-size: 14px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.close-button:hover {
+  background-color: #d32f2f;
+}
+
+.highlight-hover {
+  outline: 2px solid #007bff;
+}
+
+.comment-box-hover {
+  box-shadow: 0 0 5px #007bff;
+}
+
+[data-comment-id] {
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.3s ease;
+}
+
+[data-comment-id]:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+}
